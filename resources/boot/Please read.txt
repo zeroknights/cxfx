@@ -1,6 +1,0 @@
-When editing cxfx(Photoshop).aep you need to have cxfx.psd. i imported the .psd. it is the source file, that holds the assets for animation.
-same will apply for cxfx(Illustrator).aep (coming soon). you will need cxfx.ai. 
-
-
-cxfx(Photoshop).aep: linked to cxfx.psd (need to place psd in same folder as .aep)
-cxfx(Illustrator).aep: linked to /image/source/cxfx.ai
