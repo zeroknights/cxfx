@@ -16,6 +16,7 @@ import "v2"
 // Canvas Textures
 
 var intro_canvas_texture gfx.TextureId
+var loading_bar_texture gfx.TextureId
 
 // Font
 
@@ -52,6 +53,10 @@ var canvas_init gfx.MeshId
 var canvas_intro gfx.MeshId
 var canvas_menu gfx.MeshId
 var canvas_delay gfx.MeshId
+
+// Graphic effects
+
+var loading_bar gfx.MeshId
 
 // Game Exit Key
 //-----------------------------------------------------------------------//
@@ -128,25 +133,52 @@ func gameOnRender_canvas_intro(controlIndex i32, controlAction i32) {
 	var textHeight i32
 	textWidth, textHeight = gfx.MeasureText(font, loading_text)
 	
-	var wf f32 = i32.f32(textWidth)
-	var hf f32 = i32.f32(textHeight)
-	var xf f32 = (gfx.gfx_viewportSize.x - wf) / 2.0
-	var yf f32 = (gfx.gfx_viewportSize.y - hf) / 4.0
+	var wf f32 = i32.f32(textWidth) / 1200.0
+	var hf f32 = i32.f32(textHeight) / 400.0
+	var xf f32 = (gfx.gfx_viewportSize.x - wf) / 2.35
+	var yf f32 = (gfx.gfx_viewportSize.y - hf) / 3.23
 
 	
 	gfx.MeshBegin(font_mesh_intro)
 	gfx.MeshAppendText(font_mesh_intro, font_texture_intro, font,
-			v2.make(xf, yf), v2.ONE,
+			v2.make(xf, yf), v2.make(wf, hf),
 			v4.ONE,
 			loading_text,
 			false, v4.BLUE, v4.BLUE, // TODO remove debug arguments
 			v4.make(0.0, 0.0, gfx.gfx_viewportSize.x, gfx.gfx_viewportSize.y),
 			0.0)
 	gfx.MeshEnd(font_mesh_intro)
-	
 	gfx.EffectUse(gfx.g_fxTexture2D)
 	gfx.EffectAssignTexture(gfx.g_fxTexture2D, gfx.SAMPLER_COLOR_0, font_texture_intro, gfx.g_linearWrap)
+	gfx.EnableBlending(gfx.SRC_ALPHA, gfx.ONE_MINUS_SRC_ALPHA)
 	gfx.MeshRender(font_mesh_intro)
+	
+	
+//--------------------------------------------------------------------------------//
+
+
+	
+	
+	// Size of loading bar Model
+	var wb f32 = gfx.TextureWidthF32(loading_bar_texture) / 1.0
+	var hb f32 = gfx.TextureHeightF32(loading_bar_texture) / 1.0
+	var xb f32 = (gfx.gfx_viewportSize.x - wb) / 2.0
+	var yb f32 = (gfx.gfx_viewportSize.y - hb) / 3.63
+	
+	// Mesh Creation Canvas Intro 
+	gfx.MeshBegin(loading_bar)
+	gfx.MeshAppendOrthoQuad(loading_bar,
+			v4.make(xb, yb, wb, hb),
+			v4.BLUE,
+			v4.ONE,
+			v4.make(0.0, 0.0, gfx.gfx_viewportSize.x, gfx.gfx_viewportSize.y),
+			0.0)
+	gfx.MeshEnd(loading_bar)
+	
+	// Canvas Intro Color Apply
+	gfx.EffectUse(gfx.g_fxTexture2D)
+	gfx.EffectAssignTexture(gfx.g_fxTexture2D, gfx.SAMPLER_COLOR_0, loading_bar_texture, gfx.g_linearWrap)
+	gfx.MeshRender(loading_bar)
 	
 	}
 	
@@ -359,6 +391,13 @@ func main()() {
 	font_mesh_intro = gfx.MeshLock(gfx.TRIANGLES, gfx.UNSIGNED_SHORT, nameLen * 6, gfx.g_vertexLayout, nameLen * 4)
 	font_texture_intro = gfx.TextureCreateFont(font, sprintf("%s/fonts/Skycoin-Regular.ttf", app.DataDir()),
 		64, 32, 127, gfx.TEXT_LEFT_TO_RIGHT, -1)
+		
+	loading_bar = gfx.MeshLock(gfx.TRIANGLES, gfx.UNSIGNED_SHORT, 6, gfx.g_vertexLayout, 4)
+	loading_bar_texture = gfx.TextureCreate(sprintf("%s/textures/loading_bar_texture.png", gam.DataDir()),
+		gfx.FORMAT_R8_G8_B8_A8, 0, 0, -1, false)
+	
+
+		
 	}
 	
 
