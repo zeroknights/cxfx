@@ -22,14 +22,14 @@ type Game struct {
 }
 
 // Init ...
-func Init(name str, width i32, height i32, fps i32, dataDir str)() {
+func Init(name str, text_src str width i32, height i32, fps i32, dataDir str)() {
     app.g_application.options.width = width
     app.g_application.options.height = height
     app.g_application.options.fps = fps
     app.g_application.options.dataDir = dataDir
 
     fps.Init(i32.ui32(app.Fps()))
-    app.Init(name, "mainWindow", 2, 1)
+    app.Init(name, text_src, "mainWindow", 2, 1)
     gfx.Init(app.Width(), app.Height(), app.DataDir())
     gui.Init(app.Width(), app.Height(), app.DataDir())
     snd.Init(64, 64)

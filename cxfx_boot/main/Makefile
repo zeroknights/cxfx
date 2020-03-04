@@ -65,3 +65,5 @@ SRC = $(CX)/lib/args.cx\
 
 cxfx_boot:
 	cx $(OPTS) $(SRC) cxfx_boot.cx ++data=$(DATA) ##++hints=resizable
+	
+
