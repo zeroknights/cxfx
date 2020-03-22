@@ -2,6 +2,7 @@ package main
 
 // Lib Import
 
+import "os"	
 import "app"
 import "gam"
 import "gfx"
@@ -12,6 +13,11 @@ import "v3"
 import "v4"
 import "snd"
 import "v2"
+import "fps"
+import "q4"
+import "time"
+import "gl"
+import "glfw"
 
 // Canvas Textures
 
@@ -24,6 +30,7 @@ var font_mesh_intro gfx.MeshId
 var font_texture_intro gfx.TextureId
 var font str = "skycoinRegular"
 var loading_text str = ""
+var loading_text_frames gui.AnimationId
 
 // Screens
 
@@ -58,6 +65,15 @@ var canvas_delay gfx.MeshId
 
 var loading_bar gfx.MeshId
 
+// Loading Bar
+var loading_bar_width_time f32 = 0.0
+
+var dt f32 = f64.f32(fps.DeltaSecond())
+
+
+
+
+
 // Game Exit Key
 //-----------------------------------------------------------------------//
 
@@ -73,7 +89,32 @@ func gameOnEvent(controlIndex i32, controlAction i32) {
 }
 
 
+
+// loading bar string loop array
+//-----------------------------------------------------------------------//
+
+
+func delay(mydelay f64) {
+
+	mydelay = mydelay * f32.f64(1e9) //convert input into nano seconds 
+	var startTime f64 = i64.f64(time.UnixNano()) //read current timestamp
+
+	startLabel: // goto jump location for looping
+		var elapsedTime f64 = i64.f64(time.UnixNano()) - startTime //update elapsed time
+
+	if elapsedTime < mydelay { //if elapsed time is not greater than my input the keep looping
+		goto startLabel //goto label to keep delaying
+	}
+}
+
+
 	
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+	
+
+
+
 // Render Canvas delay
 //-----------------------------------------------------------------------//
 	func gameOnRender_canvas_delay(controlIndex i32, controlAction i32) {
@@ -104,7 +145,12 @@ func gameOnEvent(controlIndex i32, controlAction i32) {
 	// Render Canvas Intro 
 //-----------------------------------------------------------------------//
 
+
+
 func gameOnRender_canvas_intro(controlIndex i32, controlAction i32) {
+
+	
+
 
 	// Size of Canvas Intro Model
 	var w f32 = gfx.TextureWidthF32(intro_canvas_texture) / 1.0
@@ -126,8 +172,7 @@ func gameOnRender_canvas_intro(controlIndex i32, controlAction i32) {
 	gfx.EffectUse(gfx.g_fxTexture2D)
 	gfx.EffectAssignTexture(gfx.g_fxTexture2D, gfx.SAMPLER_COLOR_0, intro_canvas_texture, gfx.g_linearWrap)
 	gfx.MeshRender(canvas_intro)
-
-	loading_text = "Loading Skycoin"
+	
 	
 	var textWidth i32
 	var textHeight i32
@@ -154,21 +199,38 @@ func gameOnRender_canvas_intro(controlIndex i32, controlAction i32) {
 	gfx.MeshRender(font_mesh_intro)
 	
 	
+	
+	
+	
+	
 //--------------------------------------------------------------------------------//
 
 
 	
 	
+	
 	// Size of loading bar Model
-	var wb f32 = gfx.TextureWidthF32(loading_bar_texture) / 1.0
-	var hb f32 = gfx.TextureHeightF32(loading_bar_texture) / 1.0
+	var wb f32 = gfx.TextureWidthF32(loading_bar_texture) / 10.0
+	var hb f32 = gfx.TextureHeightF32(loading_bar_texture) / 10.0
 	var xb f32 = (gfx.gfx_viewportSize.x - wb) / 2.0
 	var yb f32 = (gfx.gfx_viewportSize.y - hb) / 3.63
+
+
+		
+	loading_bar_width_time = loading_bar_width_time + 0.25 * dt
+	
+	if loading_bar_width_time <= wb {
+		loading_bar_width_time = loading_bar_width_time + 0.45
+		} else {
+		loading_bar_width_time = wb
+			}
+
+	
 	
 	// Mesh Creation Canvas Intro 
 	gfx.MeshBegin(loading_bar)
 	gfx.MeshAppendOrthoQuad(loading_bar,
-			v4.make(xb, yb, wb, hb),
+			v4.make(xb, yb, loading_bar_width_time, hb),
 			v4.BLUE,
 			v4.ONE,
 			v4.make(0.0, 0.0, gfx.gfx_viewportSize.x, gfx.gfx_viewportSize.y),
@@ -180,13 +242,16 @@ func gameOnRender_canvas_intro(controlIndex i32, controlAction i32) {
 	gfx.EffectAssignTexture(gfx.g_fxTexture2D, gfx.SAMPLER_COLOR_0, loading_bar_texture, gfx.g_linearWrap)
 	gfx.MeshRender(loading_bar)
 	
-	}
+
 	
+}
+ 	
 	
 // Render Boot Animation And Sound
 //-----------------------------------------------------------------------//
 
 	func gameOnRender_animation(controlIndex i32, controlAction i32) {
+	
 	
 		// Play CXFX Boot Sound 
 	if snd.VoiceState(voiceId) == snd.VOICE_STOPPED {
@@ -378,6 +443,8 @@ func main()() {
 	gui.ControlSetDock(introScreen.base, gui.DOCK_FILL)
 	gui.ScreenSetDuration(introScreen, 15.0D)
 	gui.ScreenSetOnRender(introScreen, "main", "gameOnRender_canvas_intro")
+	gui.ScreenSetOnUpdate(introScreen, "main", "delay")
+	gui.ScreenSetOnUpdate(introScreen, "main", "gameOnRender_canvas_intro")
 	gui.ScreenSetOnNext(introScreen, bootScreen)
 	{
 	
@@ -396,8 +463,28 @@ func main()() {
 	loading_bar_texture = gfx.TextureCreate(sprintf("%s/textures/loading_bar_texture.png", gam.DataDir()),
 		gfx.FORMAT_R8_G8_B8_A8, 0, 0, -1, false)
 	
+		var delayTime f64 = f32.f64(3.25) //delay time of 2 seconds
 
-		
+	var loading_text_place_hold [5]str
+	loading_text_place_hold[0] = "Sounds"  // Assign a value to the first element
+	loading_text_place_hold[1] = "Texture" // Assign a value to the second element
+	loading_text_place_hold[2] = "Meshes"  // Assign a value to the third element
+	loading_text_place_hold[3] = "Scenes"  // Assign a value to the third element
+	loading_text_place_hold[4] = "Animations"  // Assign a value to the third element
+	
+	var loading_text_length i32 = len(loading_text_place_hold)
+
+	var word_count i32 = 0
+	
+	var resources str = ""
+
+		for word_count = 0; word_count <= loading_text_length; word_count++ {
+			resources = loading_text_place_hold[word_count]
+            loading_text = "Loading" + " " + resources
+			word_count = word_count + 1
+			delay(delayTime)
+			}
+			
 	}
 	
 

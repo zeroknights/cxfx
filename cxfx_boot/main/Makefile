@@ -66,4 +66,8 @@ SRC = $(CX)/lib/args.cx\
 cxfx_boot:
 	cx $(OPTS) $(SRC) cxfx_boot.cx ++data=$(DATA) ##++hints=resizable
 	
-
+args:
+	cx $(OPTS) $(SRC) args.cx ++data=$(DATA) ##++hints=resizable
+	
+time:
+	cx $(OPTS_MEM) $(SRC) time.cx ++data=$(DATA)
